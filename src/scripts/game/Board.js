@@ -3,6 +3,7 @@ import { App } from "../system/App";
 import { Field } from "./Field";
 import { Tile } from "./Tile";
 import { TileFactory } from "./TileFactory";
+import debounce from "lodash/debounce";
 
 export class Board {
   constructor() {
@@ -39,11 +40,12 @@ export class Board {
         x: event.data.originalEvent.changedTouches[0].clientX,
         y: event.data.originalEvent.changedTouches[0].clientY,
       };
+
       this.currentTile = event.currentTarget.tile;
       this.container.emit("tile-touch-start", event.currentTarget.tile);
     });
 
-    tile.sprite.on("touchend", (event) => {
+    tile.sprite.on("touchmove", (event) => {
       event.data.originalEvent.preventDefault();
       const tile = this.currentTile;
 
@@ -52,27 +54,35 @@ export class Board {
         y: event.data.originalEvent.changedTouches[0].clientY,
       };
 
-      const deltaX = currentTouch.x - this.startTouch.x;
-      const deltaY = currentTouch.y - this.startTouch.y;
+      if (!this.debounceFlag) {
+        const debouncedFunction = debounce(() => {
+          const deltaX = currentTouch.x - this.startTouch.x;
+          const deltaY = currentTouch.y - this.startTouch.y;
 
-      let field;
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        field = this.getField(
-          tile.field.row,
-          deltaX > 0 ? tile.field.col + 1 : tile.field.col - 1
-        );
-      } else {
-        field = this.getField(
-          deltaY > 0 ? tile.field.row + 1 : tile.field.row - 1,
-          tile.field.col
-        );
+          let field;
+          if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            field = this.getField(
+              tile.field.row,
+              deltaX > 0 ? tile.field.col + 1 : tile.field.col - 1
+            );
+          } else {
+            field = this.getField(
+              deltaY > 0 ? tile.field.row + 1 : tile.field.row - 1,
+              tile.field.col
+            );
+          }
+
+          if (field) {
+            this.container.emit("tile-touch-start", field.tile);
+          }
+
+          tile.sprite.off("touchmove");
+          this.debounceFlag = false; // Reset the flag after the debounced function runs
+        }, 100);
+
+        debouncedFunction();
+        this.debounceFlag = true; // Set the flag to prevent subsequent calls
       }
-
-      if (field) {
-        this.container.emit("tile-touch-start", field.tile);
-      }
-
-      tile.sprite.off("pointerup");
     });
 
     return tile;
