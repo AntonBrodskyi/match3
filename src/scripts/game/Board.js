@@ -32,22 +32,28 @@ export class Board {
     tile.sprite.interactive = true;
     tile.sprite.tile = tile;
 
-    tile.sprite.on("pointerdown", (event) => {
+    tile.sprite.on("touchstart", (event) => {
+      event.data.originalEvent.preventDefault();
+
       this.startTouch = {
-        x: event.data.global.x,
-        y: event.data.global.y,
+        x: event.data.originalEvent.changedTouches[0].clientX,
+        y: event.data.originalEvent.changedTouches[0].clientY,
       };
-      console.log(this.startTouch);
       this.currentTile = event.currentTarget.tile;
       this.container.emit("tile-touch-start", event.currentTarget.tile);
     });
 
-    tile.sprite.on("pointerup", (event) => {
-      const endTouch = event.data.global;
+    tile.sprite.on("touchend", (event) => {
+      event.data.originalEvent.preventDefault();
       const tile = this.currentTile;
 
-      const deltaX = endTouch.x - this.startTouch.x;
-      const deltaY = endTouch.y - this.startTouch.y;
+      const currentTouch = {
+        x: event.data.originalEvent.changedTouches[0].clientX,
+        y: event.data.originalEvent.changedTouches[0].clientY,
+      };
+
+      const deltaX = currentTouch.x - this.startTouch.x;
+      const deltaY = currentTouch.y - this.startTouch.y;
 
       let field;
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
