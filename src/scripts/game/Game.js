@@ -77,6 +77,25 @@ export class Game {
         this.clearSelection(tile);
         this.selectTile(tile);
       } else {
+        console.log("switch");
+        let redFields = this.board.fields.filter(
+          (field) => field?.tile?.color === "red"
+        );
+
+        if (this.selectedTile?.color === "red") {
+          redFields.forEach((field) => {
+            field?.tile?.setDirectionTexture(this.board.currentDirection);
+          });
+
+          setTimeout(() => {
+            // Use the captured value of 'field' here
+            console.log(redFields);
+            redFields.forEach((field) => {
+              field?.tile?.setDirectionTexture();
+            });
+          }, 500);
+        }
+
         this.swap(this.selectedTile, tile);
       }
     } else {

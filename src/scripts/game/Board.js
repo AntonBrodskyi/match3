@@ -14,6 +14,7 @@ export class Board {
     this.create();
     this.adjustPosition();
     this.startTouch = null;
+    this.currentDirection = null;
   }
 
   create() {
@@ -32,6 +33,8 @@ export class Board {
 
     tile.sprite.interactive = true;
     tile.sprite.tile = tile;
+
+    console.log(this);
 
     tile.sprite.on("touchstart", (event) => {
       event.data.originalEvent.preventDefault();
@@ -62,21 +65,23 @@ export class Board {
           let field;
           if (Math.abs(deltaX) > Math.abs(deltaY)) {
             field = this.getField(
-              tile.field.row,
-              deltaX > 0 ? tile.field.col + 1 : tile.field.col - 1
+              tile?.field?.row,
+              deltaX > 0 ? tile?.field?.col + 1 : tile?.field?.col - 1
             );
+            this.currentDirection = deltaX > 0 ? "right" : "left";
           } else {
             field = this.getField(
-              deltaY > 0 ? tile.field.row + 1 : tile.field.row - 1,
-              tile.field.col
+              deltaY > 0 ? tile?.field?.row + 1 : tile?.field?.row - 1,
+              tile?.field?.col
             );
+            this.currentDirection = deltaY > 0 ? "bottom" : "top";
           }
 
           if (field) {
             this.container.emit("tile-touch-start", field.tile);
           }
 
-          tile.sprite.off("touchmove");
+          tile?.sprite?.off("touchmove");
           this.debounceFlag = false; // Reset the flag after the debounced function runs
         }, 100);
 
@@ -87,9 +92,10 @@ export class Board {
 
     return tile;
   }
-
   getField(row, col) {
-    return this.fields.find((field) => field.row === row && field.col === col);
+    return this.fields?.find(
+      (field) => field?.row === row && field?.col === col
+    );
   }
 
   createFields() {
